@@ -6,26 +6,26 @@ import FundRiserCard from "../components/FundRiserCard";
 import Loader from "../components/Loader";
 
 const Dashboard = () => {
-
-  const projectsList = useSelector(state=>state.projectReducer.projects)
+  const projectsList = useSelector((state) => state.projectReducer.projects);
 
   return (
-    <div className="px-2 py-4 flex flex-col lg:px-12 lg:flex-row ">
-      <div className="lg:w-7/12 my-2 lg:my-0 lg:mx-2">
-        {projectsList !== undefined?
-          projectsList.length > 0 ?
+    <div className="px-2 py-4 flex flex-col lg:px-12 lg:flex-row h-full grow">
+      <div className="lg:w-12/12 my-2 lg:my-0 lg:mx-0 w-full">
+        {projectsList !== undefined ? (
+          projectsList.length > 0 ? (
             projectsList.map((data, i) => (
-              <FundRiserCard props={data} key={i}/>
+              <FundRiserCard props={data} key={i} />
             ))
-          :
-          <h1 className="text-2xl font-bold text-gray-500 text-center font-sans">No project found !</h1>
-        :
-        <Loader/>
-      }
+          ) : (
+            <h1 className="text-3xl font-bold text-gray-500 text-center font-sans">
+              No project found!
+            </h1>
+          )
+        ) : (
+          <Loader />
+        )}
       </div>
-      <div className="card lg:w-5/12 h-fit my-4">
-          <FundRiserForm/>
-      </div>
+      <FundRiserForm />
     </div>
   );
 };
