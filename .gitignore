@@ -6,8 +6,4 @@ typechain
 
 #Hardhat files
 cache
-<<<<<<< HEAD
 artifacts
-=======
-artifacts
->>>>>>> frontend

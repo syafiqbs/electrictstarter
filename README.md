@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-# electrictstarter
-=======
-# Crowd funding
+# Electric Starter
 
 https://user-images.githubusercontent.com/55044734/164529677-27af29f2-96d6-4ce6-bb61-c1f0c63a3beb.mp4
 
@@ -91,4 +88,3 @@ node scripts/deploy.js
 npx hardhat help
 npx hardhat run scripts/deploy.js --network <network name>
 ```
->>>>>>> frontend
