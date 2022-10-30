@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background: #f7f5f2;
+}
+
+button:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+.card {
+  @apply w-full bg-slate-50 p-3 drop-shadow rounded-lg lg:p-6;
+}
+
+.ribbon {
+  @apply absolute top-4 right-4 m-2 py-1 px-2 rounded-md text-sm text-center text-white font-semibold;
+}
+
+.inner-card {
+  @apply bg-[#8d8daa18] py-4 px-5 rounded-md;
+}
+
+.input {
+  @apply border border-teal-400 py-2 px-3 focus:outline-none w-full;
+}
+
+.form-control-input {
+  @apply border py-2 px-3 focus:outline-none focus:ring w-full rounded-md my-1;
+}
+
+.button {
+  @apply border bg-teal-600 text-white rounded-r-md px-2 hover:bg-teal-700 active:bg-teal-800 focus:outline-none;
+}
+
+.progress {
+  @apply bg-[#F56D91] w-full text-xs font-medium text-white text-center p-0.5 leading-none rounded-l-full;
+}
+
+.date-picker input {
+  box-sizing: border-box;
+  position: relative;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  background: transparent;
+  bottom: 0;
+  color: transparent;
+  cursor: pointer;
+  height: auto;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: auto;
+}
+
+.withdraw-button {
+  @apply border bg-emerald-500 text-white rounded-md p-2 mt-1  font-bold hover:bg-emerald-600 active:bg-emerald-700 focus:outline-none focus:ring focus:ring-emerald-300;
+  width: 100%;
+}
