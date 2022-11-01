@@ -37,6 +37,7 @@ contract Fundraise is ReentrancyGuard{
     event FundraiseSuccessful(uint256 timestamp, uint currentTotal, uint contributors);
     event FundraiseUnsuccessful(uint256 timestamp, uint currentTotal, uint contributors);
     event withdrawFund(uint256 timestamp, uint256 value, string description);
+    event FundraiserFundWithdraw(uint256 amount, uint256 balance, string details, address destination, uint256 timestamp);
 
     // Modifiers
     modifier isFundraiser(){
@@ -57,7 +58,8 @@ contract Fundraise is ReentrancyGuard{
     // @return
 
 
-    // Create a payable constructor which initializes the contract
+
+    // @dev Create a payable constructor which initializes the contract
     constructor(address payable _fundraiser, uint256 _minimumContribution, uint256 _targetContribution, string memory _title, string memory _description, uint256 _deadline ){
         fundraiser = _fundraiser;
         minimumContribution = _minimumContribution;
@@ -67,6 +69,7 @@ contract Fundraise is ReentrancyGuard{
         deadline = _deadline;
     }
 
+    // @dev Handle contribute function after meeting minimum amount
     function contribute(address _contributor) public isOngoing(State.Ongoing) payable{
         require(msg.value >= minimumContribution, "Does not meet minimum contribution");
         if (contributions[_contributor] == 0){
@@ -79,11 +82,9 @@ contract Fundraise is ReentrancyGuard{
     }
 
     // @dev Check if target contribution is met or dateline passed
-
     function checkStatus() internal {
         if (currentContribution >= targetContribution){
             state = State.Successful;
-            // (uint256 timestamp, uint currentTotal, uint contributors)
             emit FundraiseSuccessful(block.timestamp, currentContribution, CONTRIBUTORS.length);
         }
         else if (block.timestamp > deadline){
@@ -92,9 +93,11 @@ contract Fundraise is ReentrancyGuard{
         }
     }
 
-    function processRefund() public isOngoing(State.Unsuccessful) nonReentrant() returns(bool){
-        // check if user is a contributor
-        if (contributions[msg.sender] == 0){
+    // @dev Allows contributor to pull out their funds during ONGOING OR Unsuccessful fundraise
+    // @return true or false
+    function processRefund() public nonReentrant() returns(bool){
+        // Check if user is a contributor AND state is not ongoing or unsuccessful
+        if ((uint8(state)!=1 || uint8(state)!=1) && contributions[msg.sender] == 0){
             return false;
         }
         else{
@@ -106,8 +109,37 @@ contract Fundraise is ReentrancyGuard{
         }
     }
 
-    // function withdrawFund(uint256 _value, string _description) public isFundraiser() isOngoing(State.Successful){
-    //     fundraiser.transfer(_value);
-    // } 
+    // @returns Return fundraise details
+    function getFundraiseDetails() public view returns(
+            address payable _creator,
+            uint256 _minContribution,
+            uint256 _deadline,
+            uint256 _targetAmount,
+            uint256 _currentAmount,
+            string memory _title,
+            string memory _description,
+            State _currentState,
+            uint256 _balance
+
+    ){
+        _creator = fundraiser;
+        _minContribution = minimumContribution;
+        _deadline = deadline;
+        _targetAmount = targetContribution;
+        _currentAmount = currentContribution;
+        _title = title;
+        _description = description;
+        _currentState = state;
+        _balance = address(this).balance;
+    }
+
+    // @dev Allows the fundraiser to withdraw funds from contract after successful fundraise
+    // @returns boolean
+    function withdrawSuccessfulFunds(uint256 _amount, string memory _details, address payable _destination) isFundraiser() public returns(bool){
+        require(uint8(state)==3, "Fundraise must be successful for fundraiser to withdraw");
+        _destination.transfer(_amount);
+        emit FundraiserFundWithdraw(_amount, address(this).balance, _details, _destination, block.timestamp);
+        return true;
+    }
 
 }

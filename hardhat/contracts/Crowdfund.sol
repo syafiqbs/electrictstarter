@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 import "./Fundraise.sol";
 
 contract Crowdfund{
+
+    // Events
     event FundraiseStarted(
         address contractAddress,
         address creator,
@@ -17,14 +19,17 @@ contract Crowdfund{
         uint256 currentState
     );
 
+    // Events
     event contributionReceived(
         address fundraiseAddress,
         uint256 contributionAmount,
         address indexed contributor
     );
 
+    // Variables
     Fundraise[] private fundraises;
-    
+
+    // @dev Create a new fund raise
     function createFundraise(uint256 minimumContribution, uint256 deadline, uint256 targetContribution, string memory title, string memory description) public{
         deadline = deadline;
         Fundraise newFundraise = new Fundraise(payable(msg.sender), minimumContribution, targetContribution, title, description, deadline);
@@ -32,10 +37,12 @@ contract Crowdfund{
         emit FundraiseStarted(address(newFundraise), msg.sender, minimumContribution, deadline, targetContribution, 0, 0, title, description, 0);
     }
 
+    // @dev Return contribution back to contributors if fundraise is unsuccessful
     function returnFundraises() external view returns(Fundraise[] memory){
         return fundraises;
     }
 
+    // @dev Allows anyone to contribute to a fundraise address
     function contribute(address _fundraiseAddress) public payable{
         uint256 minContributionAmt = Fundraise(_fundraiseAddress).minimumContribution();
         Fundraise.State fundraiseState = Fundraise(_fundraiseAddress).state();
