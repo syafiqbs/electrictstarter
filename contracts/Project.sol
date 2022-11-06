@@ -1,6 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "hardhat/console.sol";
 
 // [X] Anyone can contribute
@@ -10,24 +11,13 @@ import "hardhat/console.sol";
 // [X] Owner need to request contributers for withdraw amount.
 // [X] Owner can withdraw amount if 50% contributors agree
 
-contract Project{
+contract Project is ReentrancyGuard{
 
    // Project state
     enum State {
-        Fundraising,
-        Expired,
+        Ongoing, 
+        Unsuccessful,
         Successful
-    }
-
-    // Structs
-
-    struct WithdrawRequest{
-        string description;
-        uint256 amount;
-        uint256 noOfVotes;
-        mapping(address => bool) voters;
-        bool isCompleted;
-        address payable reciptent;
     }
 
     // Variables
@@ -37,15 +27,14 @@ contract Project{
     uint256 public targetContribution; // required to reach at least this much amount
     uint public completeAt;
     uint256 public raisedAmount; // Total raised amount till now
+    uint32 public remainingContribution;
     uint256 public noOfContributers;
     string public projectTitle;
     string public projectDes;
-    State public state = State.Fundraising; 
+    address[] public CONTRIBUTORS;
+    State public state = State.Ongoing; 
 
-    mapping (address => uint) public contributiors;
-    mapping (uint256 => WithdrawRequest) public withdrawRequests;
-
-    uint256 public numOfWithdrawRequests = 0;
+    mapping (address => uint) public contributions;
 
     // Modifiers
     modifier isCreator(){
@@ -53,40 +42,19 @@ contract Project{
         _;
     }
 
-    modifier validateExpiry(State _state){
+    modifier isOngoing(State _state){
         require(state == _state,'Invalid state');
-        require(block.timestamp < deadline,'Deadline has passed !');
+        require(block.timestamp < deadline,'Fundraise has ended!');
         _;
     }
 
     // Events
 
-    // Event that will be emitted whenever funding will be received
     event FundingReceived(address contributor, uint amount, uint currentTotal);
-    // Event that will be emitted whenever withdraw request created
-    event WithdrawRequestCreated(
-        uint256 requestId,
-        string description,
-        uint256 amount,
-        uint256 noOfVotes,
-        bool isCompleted,
-        address reciptent
-    );
-    // Event that will be emitted whenever contributor vote for withdraw request
-    event WithdrawVote(address voter, uint totalVote);
-    // Event that will be emitted whenever contributor vote for withdraw request
-    event AmountWithdrawSuccessful(
-        uint256 requestId,
-        string description,
-        uint256 amount,
-        uint256 noOfVotes,
-        bool isCompleted,
-        address reciptent
-    );
-
-
-    // @dev Create project
-    // @return null
+    event FundraiseSuccessful(uint256 timestamp, uint currentTotal, uint contributors);
+    event FundraiseUnsuccessful(uint256 timestamp, uint currentTotal, uint contributors);
+    event withdrawFund(uint256 timestamp, uint256 value, string description);
+    event FundraiserFundWithdraw(uint256 amount, uint256 balance, string details, address destination, uint256 timestamp);
 
    constructor(
        address _creator,
@@ -108,25 +76,28 @@ contract Project{
     // @dev Anyone can contribute
     // @return null
 
-    function contribute(address _contributor) public validateExpiry(State.Fundraising) payable {
-        require(msg.value >= minimumContribution,'Contribution amount is too low !');
-        if(contributiors[_contributor] == 0){
+    function contribute(address _contributor) public isOngoing(State.Ongoing) payable {
+        require(msg.value >= minimumContribution,'Does not meet minimum contribution!');
+        if(contributions[_contributor] == 0){
             noOfContributers++;
         }
-        contributiors[_contributor] += msg.value;
+        contributions[_contributor] += msg.value;
         raisedAmount += msg.value;
         emit FundingReceived(_contributor,msg.value,raisedAmount);
-        checkFundingCompleteOrExpire();
+        checkStatus();
     }
 
     // @dev complete or expire funding
     // @return null
 
-    function checkFundingCompleteOrExpire() internal {
+    function checkStatus() internal {
         if(raisedAmount >= targetContribution){
             state = State.Successful; 
-        }else if(block.timestamp > deadline){
-            state = State.Expired; 
+            emit FundraiseSuccessful(block.timestamp, raisedAmount, CONTRIBUTORS.length);
+        } else if(block.timestamp > deadline){
+            state = State.Unsuccessful;
+            emit FundraiseUnsuccessful(block.timestamp, raisedAmount, CONTRIBUTORS.length);
+
         }
         completeAt = block.timestamp;
     }
@@ -141,61 +112,18 @@ contract Project{
     // @dev Request refunt if funding expired
     // @return boolean
 
-    function requestRefund() public validateExpiry(State.Expired) returns(bool) {
-        require(contributiors[msg.sender] > 0,'You dont have any contributed amount !');
-        address payable user = payable(msg.sender);
-        user.transfer(contributiors[msg.sender]);
-        contributiors[msg.sender] = 0;
-        return true;
-    }
-
-    // @dev Request contributor for withdraw amount
-    // @return null
-   
-    function createWithdrawRequest(string memory _description,uint256 _amount,address payable _reciptent) public isCreator() validateExpiry(State.Successful) {
-        WithdrawRequest storage newRequest = withdrawRequests[numOfWithdrawRequests];
-        numOfWithdrawRequests++;
-
-        newRequest.description = _description;
-        newRequest.amount = _amount;
-        newRequest.noOfVotes = 0;
-        newRequest.isCompleted = false;
-        newRequest.reciptent = _reciptent;
-
-        emit WithdrawRequestCreated(numOfWithdrawRequests,_description, _amount,0,false,_reciptent );
-    }
-
-    // @dev contributors can vote for withdraw request
-    // @return null
-
-    function voteWithdrawRequest(uint256 _requestId) public {
-        require(contributiors[msg.sender] > 0,'Only contributor can vote !');
-        WithdrawRequest storage requestDetails = withdrawRequests[_requestId];
-        require(requestDetails.voters[msg.sender] == false,'You already voted !');
-        requestDetails.voters[msg.sender] = true;
-        requestDetails.noOfVotes += 1;
-        emit WithdrawVote(msg.sender,requestDetails.noOfVotes);
-    }
-
-    // @dev Owner can withdraw requested amount
-    // @return null
-
-    function withdrawRequestedAmount(uint256 _requestId) isCreator() validateExpiry(State.Successful) public{
-        WithdrawRequest storage requestDetails = withdrawRequests[_requestId];
-        require(requestDetails.isCompleted == false,'Request already completed');
-        require(requestDetails.noOfVotes >= noOfContributers/2,'At least 50% contributor need to vote for this request');
-        requestDetails.reciptent.transfer(requestDetails.amount);
-        requestDetails.isCompleted = true;
-
-        emit AmountWithdrawSuccessful(
-            _requestId,
-            requestDetails.description,
-            requestDetails.amount,
-            requestDetails.noOfVotes,
-            true,
-            requestDetails.reciptent
-        );
-
+    function processRefund() public nonReentrant() returns(bool){
+        // Check if user is a contributor AND state is not ongoing or unsuccessful
+        if ((uint8(state) == 2) && contributions[msg.sender] == 0){
+            return false;
+        }
+        else{
+            address payable contributor = payable(msg.sender);
+            uint256 value = contributions[msg.sender];
+            contributions[msg.sender] = 0;
+            contributor.transfer(value);
+            return true;
+        }
     }
 
     // @dev Get contract details
@@ -225,4 +153,10 @@ contract Project{
         balance=address(this).balance;
     }
 
+    function withdrawSuccessfulFunds(uint256 _amount, string memory _details, address payable _destination) isCreator() public returns(bool){
+        require(uint8(state)==2, "Fundraise must be successful for fundraiser to withdraw");
+        _destination.transfer(_amount);
+        emit FundraiserFundWithdraw(_amount, address(this).balance, _details, _destination, block.timestamp);
+        return true;
+    }
 }

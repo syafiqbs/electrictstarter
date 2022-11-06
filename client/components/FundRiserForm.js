@@ -44,7 +44,7 @@ const FundRiserForm = () => {
       setMinimumContributionAmount("");
       setDeadline("");
       setShowModal(false);
-      toastSuccess("Fund rising started 🎉");
+      toastSuccess("Fund raising started 🎉");
     };
 
     const onError = (error) => {

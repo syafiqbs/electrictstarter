@@ -33,7 +33,7 @@ contract Fundraise is ReentrancyGuard{
     
 
     // Events
-    event ReceivedContribution(address contributor, uint amount, uint currentTotal);
+    event ReceivedContribution(address contributor, uint amount, uint currentTotal); 
     event FundraiseSuccessful(uint256 timestamp, uint currentTotal, uint contributors);
     event FundraiseUnsuccessful(uint256 timestamp, uint currentTotal, uint contributors);
     event withdrawFund(uint256 timestamp, uint256 value, string description);
@@ -97,7 +97,7 @@ contract Fundraise is ReentrancyGuard{
     // @return true or false
     function processRefund() public nonReentrant() returns(bool){
         // Check if user is a contributor AND state is not ongoing or unsuccessful
-        if ((uint8(state)!=1 || uint8(state)!=1) && contributions[msg.sender] == 0){
+        if ((uint8(state) == 0 || uint8(state) == 3) && contributions[msg.sender] == 0){
             return false;
         }
         else{

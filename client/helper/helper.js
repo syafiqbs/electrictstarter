@@ -16,7 +16,7 @@ export const unixToDate = (unixDate) => {
   return moment(unixDate).format("DD/MM/YYYY");
 };
 
-export const state = ["Fundraising", "Expired", "Successful"];
+export const state = ["Ongoing", "Unsuccessful", "Successful"];
 
 export const projectDataFormatter = (data, contractAddress) => {
   const formattedData = {
@@ -75,17 +75,6 @@ export const groupContributors = (contributions) => {
     }
   );
   return contributorGroup;
-};
-
-export const withdrawRequestDataFormatter = (data) => {
-  return {
-    requestId: data.requestId,
-    totalVote: data.noOfVotes,
-    amount: weiToEther(data.amount),
-    status: data.isCompleted ? "Completed" : "Pending",
-    desc: data.description,
-    reciptant: data.reciptent,
-  };
 };
 
 export const connectWithWallet = async (onSuccess) => {

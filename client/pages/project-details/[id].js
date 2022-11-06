@@ -3,12 +3,8 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import FundRiserCard from "../../components/FundRiserCard";
 import Loader from "../../components/Loader";
-import WithdrawRequestCard from "../../components/WithdrawRequestCard";
 import authWrapper from "../../helper/authWrapper";
-import {
-  getAllWithdrawRequest,
-  getContributors,
-} from "../../redux/interactions";
+import { getContributors } from "../../redux/interactions";
 
 const ProjectDetails = () => {
   const router = useRouter();
@@ -18,7 +14,6 @@ const ProjectDetails = () => {
   const filteredProject = projectsList?.filter((data) => data.address === id);
 
   const [contributors, setContributors] = useState(null);
-  const [withdrawReq, setWithdrawReq] = useState(null);
 
   useEffect(() => {
     if (id) {
@@ -30,60 +25,17 @@ const ProjectDetails = () => {
       };
 
       getContributors(web3, id, onSuccess, onError);
-
-      const loadWithdrawRequests = (data) => {
-        setWithdrawReq(data);
-      };
-      getAllWithdrawRequest(web3, id, loadWithdrawRequests);
     }
   }, [id]);
-
-  const pushWithdrawRequests = (data) => {
-    if (withdrawReq) {
-      setWithdrawReq([...withdrawReq, data]);
-    } else {
-      setWithdrawReq([data]);
-    }
-  };
 
   return (
     <div className="px-2 py-4 flex flex-col lg:px-12 lg:flex-row ">
       <div className="lg:w-7/12 lg:my-0 lg:mx-0">
         {filteredProject ? (
-          <FundRiserCard
-            props={filteredProject[0]}
-            pushWithdrawRequests={pushWithdrawRequests}
-          />
+          <FundRiserCard props={filteredProject[0]} />
         ) : (
           <Loader />
         )}
-
-        <div>
-          {withdrawReq ? (
-            withdrawReq.length > 0 ? (
-              <div>
-                <h1 className="font-sans text-xl text-gray font-semibold">
-                  Withdraw requests
-                </h1>
-                {withdrawReq.map((data, i) => (
-                  <WithdrawRequestCard
-                    props={data}
-                    withdrawReq={withdrawReq}
-                    setWithdrawReq={setWithdrawReq}
-                    contractAddress={id}
-                    key={i}
-                  />
-                ))}
-              </div>
-            ) : (
-              <h1 className="font-sans text-xl text-gray font-semibold">
-                Withdraw requests
-              </h1>
-            )
-          ) : (
-            <Loader />
-          )}
-        </div>
       </div>
       <div className="ml-6 card lg:w-5/12 h-screen overflow-y-hidden hover:overflow-y-auto">
         <h1 className="font-sans font-semibold text-2xl mb-4 gray-800">

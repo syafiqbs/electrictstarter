@@ -52,7 +52,7 @@ const Navbar = () => {
                           : ""
                       } text-gray-800 px-3 py-2 rounded-md text-sm font-medium hover:cursor-pointer hover:bg-[#F7C984] hover:text-greay`}
                     >
-                      My Contribution
+                      My Contributions
                     </span>
                   </Link>
                 </div>

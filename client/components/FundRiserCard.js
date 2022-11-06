@@ -1,21 +1,21 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
-import { contribute, createWithdrawRequest } from "../redux/interactions";
+import { contribute, withdrawSuccessfulFunds } from "../redux/interactions";
 import { etherToWei } from "../helper/helper";
 import { toastSuccess, toastError } from "../helper/toastMessage";
 
 const colorMaker = (state) => {
-  if (state === "Fundraising") {
+  if (state === "Ongoing") {
     return "bg-amber-500";
-  } else if (state === "Expired") {
+  } else if (state === "Unsuccessful") {
     return "bg-red-500";
   } else {
     return "bg-emerald-500";
   }
 };
 
-const FundRiserCard = ({ props, pushWithdrawRequests }) => {
+const FundRiserCard = ({ props }) => {
   const [btnLoader, setBtnLoader] = useState(false);
   const [amount, setAmount] = useState(0);
   const dispatch = useDispatch();
@@ -64,16 +64,13 @@ const FundRiserCard = ({ props, pushWithdrawRequests }) => {
     const onSuccess = (data) => {
       setBtnLoader(false);
       setAmount(0);
-      if (pushWithdrawRequests) {
-        pushWithdrawRequests(data);
-      }
       toastSuccess(`Successfully requested for withdraw ${amount} ETH`);
     };
     const onError = (message) => {
       setBtnLoader(false);
       toastError(message);
     };
-    createWithdrawRequest(web3, projectId, data, onSuccess, onError);
+    withdrawSuccessfulFunds(web3, projectId, data, onSuccess, onError);
   };
 
   return (
@@ -109,7 +106,7 @@ const FundRiserCard = ({ props, pushWithdrawRequests }) => {
           </div>
         </div>
         <div className="my-2 w-full md:w-3/5">
-          {props.state !== "Successful" ? (
+          {props.creator !== account && props.state !== "Successful" ? (
             <>
               <label className="text-sm text-gray-800 font-semibold">
                 Contribution Amount:
@@ -152,7 +149,7 @@ const FundRiserCard = ({ props, pushWithdrawRequests }) => {
                 </p>
               </div>
 
-              {props.creator === account ? (
+              {props.creator === account && props.contractBalance > 0 ? (
                 <>
                   <label className="text-sm text-gray-700 font-semibold">
                     Withdraw Request:

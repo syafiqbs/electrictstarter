@@ -2,14 +2,19 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import Loader from "../components/Loader";
 import authWrapper from "../helper/authWrapper";
-import { getMyContributionList } from "../redux/interactions";
+import {
+  getMyContributionList,
+  withdrawContribution,
+} from "../redux/interactions";
 import Link from "next/link";
+import { toastSuccess, toastError } from "../helper/toastMessage";
 
 const MyContributions = () => {
   const crowdFundingContract = useSelector(
     (state) => state.fundingReducer.contract
   );
   const account = useSelector((state) => state.web3Reducer.account);
+  const web3 = useSelector((state) => state.web3Reducer.connection);
 
   const [contributions, setContributions] = useState(null);
 
@@ -23,13 +28,26 @@ const MyContributions = () => {
     })();
   }, [crowdFundingContract]);
 
+  const withdraw = (projectId) => {
+    const data = {
+      account: account,
+    };
+    const onSuccess = (data) => {
+      toastSuccess(`YAY`);
+    };
+    const onError = (message) => {
+      toastError(message);
+    };
+    withdrawContribution(web3, projectId, data, onSuccess, onError);
+  };
+
   return (
-    <div className="px-2 py-4 flex flex-wrap lg:px-12 lg:flex-row ">
+    <div className="px-2 py-4 flex flex-wrap lg:px-12 lg:flex-row">
       {contributions ? (
         contributions.length > 0 ? (
           contributions.map((data, i) => (
             <div
-              className="inner-card my-2 flex flex-row w-full lg:w-1/5 ml-4"
+              className="inner-card my-2 flex flex-row w-full lg:w-1/5 ml-4 relative"
               key={i}
             >
               <div className="lg:w-5/5 flex">
@@ -45,6 +63,13 @@ const MyContributions = () => {
                   {data.amount} ETH
                 </p>
               </div>
+              <button
+                className="block text-white bg-teal-600 hover:bg-teal-700 font-medium rounded-md text-sm px-2 py-1 text-center absolute bottom-4 right-4"
+                type="button"
+                onClick={() => withdraw(data.projectAddress)}
+              >
+                Withdraw
+              </button>
             </div>
           ))
         ) : (
