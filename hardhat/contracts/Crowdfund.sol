@@ -46,6 +46,7 @@ contract Crowdfund{
     function contribute(address _fundraiseAddress) public payable{
         uint256 minContributionAmt = Fundraise(_fundraiseAddress).minimumContribution();
         Fundraise.State fundraiseState = Fundraise(_fundraiseAddress).state();
+        require(msg.sender != Fundraise(_fundraiseAddress).fundraiser(), "Fundraiser cannot contribute!");
         require(fundraiseState == Fundraise.State.Ongoing, "Invalid state");
         require(msg.value >= minContributionAmt, "Contribution amount is not sufficient");
         Fundraise(_fundraiseAddress).contribute{value:msg.value}(msg.sender);
