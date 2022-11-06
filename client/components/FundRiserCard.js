@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { contribute, withdrawSuccessfulFunds } from "../redux/interactions";
 import { etherToWei } from "../helper/helper";
 import { toastSuccess, toastError } from "../helper/toastMessage";
+import { useRouter } from "next/router";
 
 const colorMaker = (state) => {
   if (state === "Ongoing") {
@@ -25,6 +26,8 @@ const FundRiserCard = ({ props }) => {
   const account = useSelector((state) => state.web3Reducer.account);
   const web3 = useSelector((state) => state.web3Reducer.connection);
 
+  const router = useRouter();
+
   const contributeAmount = (projectId, minContribution) => {
     if (amount < minContribution) {
       toastError(`Minimum contribution amount is ${minContribution}`);
@@ -42,7 +45,8 @@ const FundRiserCard = ({ props }) => {
     const onSuccess = () => {
       setBtnLoader(false);
       setAmount(0);
-      toastSuccess(`Successfully contributed ${amount} ETH`);
+      // toastSuccess(`Successfully contributed ${amount} ETH`);
+      router.reload(window.location.pathname);
     };
     const onError = (message) => {
       setBtnLoader(false);
@@ -64,7 +68,8 @@ const FundRiserCard = ({ props }) => {
     const onSuccess = (data) => {
       setBtnLoader(false);
       setAmount(0);
-      toastSuccess(`Successfully requested for withdraw ${amount} ETH`);
+      // toastSuccess(`Successfully requested for withdraw ${amount} ETH`);
+      router.reload(window.location.pathname);
     };
     const onError = (message) => {
       setBtnLoader(false);

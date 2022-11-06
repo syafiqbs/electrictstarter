@@ -4,6 +4,7 @@ import { startFundRaising } from "../redux/interactions";
 import { useDispatch, useSelector } from "react-redux";
 import { etherToWei } from "../helper/helper";
 import { toastSuccess, toastError } from "../helper/toastMessage";
+import { useRouter } from "next/router";
 
 const FundRiserForm = () => {
   const crowdFundingContract = useSelector(
@@ -13,6 +14,8 @@ const FundRiserForm = () => {
   const web3 = useSelector((state) => state.web3Reducer.connection);
 
   const dispatch = useDispatch();
+
+  const router = useRouter();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -44,7 +47,8 @@ const FundRiserForm = () => {
       setMinimumContributionAmount("");
       setDeadline("");
       setShowModal(false);
-      toastSuccess("Fund raising started 🎉");
+      router.reload(window.location.pathname);
+      // toastSuccess("Fund raising started 🎉");
     };
 
     const onError = (error) => {

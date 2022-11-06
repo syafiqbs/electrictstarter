@@ -33,7 +33,7 @@ const MyContributions = () => {
       account: account,
     };
     const onSuccess = (data) => {
-      toastSuccess(`YAY`);
+      toastSuccess(`Withdrawn Contribution`);
     };
     const onError = (message) => {
       toastError(message);
@@ -47,7 +47,7 @@ const MyContributions = () => {
         contributions.length > 0 ? (
           contributions.map((data, i) => (
             <div
-              className="inner-card my-2 flex flex-row w-full lg:w-1/5 ml-4 relative"
+              className="inner-card my-2 flex flex-row w-full lg:w-1/3 ml-4 relative"
               key={i}
             >
               <div className="lg:w-5/5 flex">

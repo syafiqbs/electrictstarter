@@ -199,12 +199,6 @@ export const withdrawContribution = async (
     .processRefund()
     .send({ from: account })
     .on("receipt", function (receipt) {
-      dispatch(
-        actions.amountContributor({
-          projectId: contractAddress,
-          amount: 0,
-        })
-      );
       onSuccess();
     })
     .on("error", function (error) {
